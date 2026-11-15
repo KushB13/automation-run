@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     post_format_override: str = Field(default="auto", alias="POST_FORMAT_OVERRIDE")
 
     history_path: Path = Field(default=Path("data/history.json"), alias="HISTORY_PATH")
+    style_examples_path: Path = Field(
+        default=Path("data/style_examples.json"), alias="STYLE_EXAMPLES_PATH"
+    )
     output_dir: Path = Field(default=Path("output"), alias="OUTPUT_DIR")
     max_tweet_chars: int = Field(default=280, alias="MAX_TWEET_CHARS")
     dedup_cooldown_days: int = Field(default=30, alias="DEDUP_COOLDOWN_DAYS")

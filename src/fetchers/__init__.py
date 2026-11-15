@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 from src.config import Settings
 from src.models import CandidateItem, SourceType
+from src.fetchers.ai_news import fetch_ai_news
 from src.fetchers.huggingface import fetch_trending_models, fetch_daily_papers
 from src.fetchers.github_ai import fetch_trending_ai_repos
 from src.fetchers.benchmarks import fetch_model_benchmarks
@@ -16,6 +17,7 @@ def fetch_all_candidates(settings: Settings) -> list[CandidateItem]:
     candidates: list[CandidateItem] = []
 
     fetchers: list[tuple[SourceType, callable]] = [
+        (SourceType.AI_NEWS, lambda: fetch_ai_news()),
         (SourceType.HUGGINGFACE_MODEL, lambda: fetch_trending_models()),
         (SourceType.HUGGINGFACE_PAPER, lambda: fetch_daily_papers()),
         (SourceType.GITHUB_REPO, lambda: fetch_trending_ai_repos(github_token=settings.github_token)),

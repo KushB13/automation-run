@@ -9,6 +9,7 @@ from playwright.sync_api import sync_playwright
 from src.models import GeneratedPost, SourceType
 
 SOURCE_LABELS: dict[SourceType, tuple[str, str]] = {
+    SourceType.AI_NEWS: ("AI NEWS · BREAKING UPDATE", "#818cf8"),
     SourceType.HUGGINGFACE_MODEL: ("HUGGING FACE · TRENDING MODEL", "#f59e0b"),
     SourceType.HUGGINGFACE_PAPER: ("HUGGING FACE · DAILY PAPER", "#ec4899"),
     SourceType.GITHUB_REPO: ("GITHUB · TRENDING AI REPO", "#22d3ee"),
@@ -85,7 +86,41 @@ CARD_TEMPLATE = Template(
     font-size: 18px;
     line-height: 1.45;
     color: #94a3b8;
-    margin-bottom: 28px;
+    margin-bottom: 26px;
+  }
+  .bullets-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 22px;
+  }
+  .bullet-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: rgba(15, 23, 42, 0.72);
+    border: 1px solid rgba(148, 163, 184, 0.14);
+    border-radius: 12px;
+    padding: 14px 18px;
+    font-size: 17px;
+    line-height: 1.4;
+    color: #e2e8f0;
+  }
+  .bullet-num {
+    flex: 0 0 auto;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: {{ accent }}22;
+    border: 1px solid {{ accent }}66;
+    color: {{ accent }};
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    margin-top: 1px;
   }
   .specs-grid {
     display: grid;
@@ -211,6 +246,25 @@ CARD_TEMPLATE = Template(
         </tbody>
       </table>
     </div>
+    {% elif bullets %}
+    <div class="bullets-list">
+      {% for b in bullets %}
+      <div class="bullet-item">
+        <span class="bullet-num">0{{ loop.index }}</span>
+        <span>{{ b }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% if specs %}
+    <div class="specs-grid">
+      {% for s in specs[:3] %}
+      <div class="spec-box {% if s.highlight %}highlight{% endif %}">
+        <div class="spec-label">{{ s.label }}</div>
+        <div class="spec-value">{{ s.value }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
     {% elif specs %}
     <div class="specs-grid">
       {% for s in specs %}
@@ -242,7 +296,7 @@ def render_spec_card(
     output_path: Path,
     x_handle: str = "",
 ) -> Path:
-    """Render a crisp dark-mode real-data spec card PNG via headless Chromium."""
+    """Render a crisp dark-mode real-data spec/news card PNG via headless Chromium."""
     output_path.parent.mkdir(parents=True, exist_ok=True)
     badge_label, accent = SOURCE_LABELS.get(
         post.source_type, ("AI REAL-DATA SNAPSHOT", "#22d3ee")
@@ -258,6 +312,7 @@ def render_spec_card(
         headline=post.card_headline,
         subtitle=post.card_subtitle,
         specs=post.card_specs[:6],
+        bullets=post.card_bullets[:3],
         comparison_headers=post.comparison_headers,
         comparison_rows=post.comparison_rows[:6],
         takeaway=post.card_takeaway,

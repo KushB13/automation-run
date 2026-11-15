@@ -5,11 +5,12 @@ from unittest.mock import MagicMock
 
 from src.config import Settings
 from src.models import GeneratedPost, PostFormat, SourceType, SpecRow
+from src.visuals.live_capture import is_blocked_or_cluttered
 from src.visuals.spec_card import render_spec_card
 from src.x_client import XClient
 
 
-def test_render_spec_card_grid_and_table(tmp_path: Path):
+def test_render_spec_card_grid_table_and_news_bullets(tmp_path: Path):
     grid_post = GeneratedPost(
         candidate_id="hf_model:Qwen/Qwen3-32B",
         source_type=SourceType.HUGGINGFACE_MODEL,
@@ -51,6 +52,39 @@ def test_render_spec_card_grid_and_table(tmp_path: Path):
     render_spec_card(table_post, table_png)
     assert table_png.exists()
     assert table_png.stat().st_size > 20_000
+
+    news_post = GeneratedPost(
+        candidate_id="ai_news:abc123",
+        source_type=SourceType.AI_NEWS,
+        post_format=PostFormat.SINGLE,
+        tweets=["OpenAI shipped native agent tracing."],
+        reply_source_text="Source: https://openai.com/news/agent-runtime",
+        card_headline="OpenAI Ships Native Agent Tracing",
+        card_subtitle="Built-in tracing and lower tool-calling latency for devs",
+        card_bullets=[
+            "Lower tool-calling latency on structured outputs",
+            "Built-in tracing removes external wrapper overhead",
+            "Compatible with existing Responses API flows",
+        ],
+        card_specs=[
+            SpecRow(label="Source", value="OpenAI News", highlight=True),
+            SpecRow(label="Category", value="Lab Announcement", highlight=True),
+            SpecRow(label="Freshness", value="2h ago"),
+        ],
+        card_takeaway="Reported by OpenAI News · Live feed update.",
+        source_url="https://openai.com/news/agent-runtime",
+    )
+    news_png = tmp_path / "news.png"
+    render_spec_card(news_post, news_png, x_handle="testbuilder")
+    assert news_png.exists()
+    assert news_png.stat().st_size > 20_000
+
+
+def test_is_blocked_or_cluttered():
+    assert is_blocked_or_cluttered(403, "Normal length text " * 20) is True
+    assert is_blocked_or_cluttered(200, "Just a moment... Verify you are human " * 10) is True
+    assert is_blocked_or_cluttered(200, "Too short") is True
+    assert is_blocked_or_cluttered(200, "Comprehensive AI research engineering article body. " * 10) is False
 
 
 def test_x_client_publish_flow(tmp_path: Path):

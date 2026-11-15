@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 
 
 class SourceType(str, Enum):
+    AI_NEWS = "ai_news"
     HUGGINGFACE_MODEL = "huggingface_models"
     HUGGINGFACE_PAPER = "huggingface_papers"
     GITHUB_REPO = "github_trending"
@@ -48,6 +49,7 @@ class GeneratedPost(BaseModel):
     card_headline: str
     card_subtitle: str
     card_specs: list[SpecRow] = Field(default_factory=list)
+    card_bullets: list[str] = Field(default_factory=list)
     card_takeaway: str = ""
     comparison_headers: list[str] = Field(default_factory=list)
     comparison_rows: list[list[str]] = Field(default_factory=list)
